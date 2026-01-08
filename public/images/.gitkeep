@@ -1,0 +1,13 @@
+# Place your static images here
+# 
+# Structure:
+# - logos/     - Logo files
+# - backgrounds/ - Background images
+# - icons/     - Icon images (if not using icon libraries)
+#
+# Usage in code:
+# <img src="/images/logo.png" alt="Logo" />
+# or with Next.js Image:
+# import Image from 'next/image'
+# <Image src="/images/hero.jpg" alt="Hero" width={800} height={600} />
+

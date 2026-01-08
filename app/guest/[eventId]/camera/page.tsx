@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useChallenges } from "@/hooks/useChallenges";
 import { usePhotos } from "@/hooks/usePhotos";
 import { ArrowLeft, Camera as CameraIcon, Check, RefreshCw, Send, Sparkles, X } from "lucide-react";
@@ -47,17 +48,33 @@ export default function CameraPage() {
             }
         } catch (err: any) {
             console.error("Error accessing camera:", err);
-            let msg = "Could not access camera.";
+            let msg = t.couldNotAccessCamera;
             if (err.name === 'NotAllowedError') {
-                msg = "Permission denied. Please allow camera access in your browser settings.";
+                msg = t.cameraPermissionDenied;
             } else if (err.name === 'NotFoundError') {
-                msg = "No camera found on this device.";
+                msg = t.noCameraFound;
             } else if (err.message.includes("not available")) {
-                msg = "Camera requires HTTPS. If testing locally, use 'chrome://flags' > 'Insecure origins treated as secure' or use 'Use Localhost' on PC.";
+                msg = t.cameraRequiresHttps;
             }
             setPermissionError(msg);
         }
-    }, [facingMode]);
+    }, [facingMode, stream, t]);
+
+    // When returning from preview -> camera, the <video> element remounts.
+    // Re-attach the existing stream so the camera doesn't go black.
+    useEffect(() => {
+        if (capturedImage) return;
+        if (!stream) return;
+        if (!videoRef.current) return;
+
+        videoRef.current.srcObject = stream;
+        const maybePromise = videoRef.current.play();
+        if (maybePromise && typeof (maybePromise as Promise<void>).catch === 'function') {
+            (maybePromise as Promise<void>).catch(() => {
+                // ignore autoplay errors; user interaction will resolve
+            });
+        }
+    }, [capturedImage, stream]);
 
     // Auto-start only if secure context, otherwise wait for user
     useEffect(() => {
@@ -95,7 +112,7 @@ export default function CameraPage() {
         if (!capturedImage) return;
         setIsSending(true);
 
-        const guestName = localStorage.getItem(`gc_guest_${eventId}`) || "Anonymous";
+        const guestName = localStorage.getItem(`gc_guest_${eventId}`) || t.anonymous;
 
         // Simulate network delay
         setTimeout(() => {
@@ -122,6 +139,11 @@ export default function CameraPage() {
             {/* Hidden Canvas */}
             <canvas ref={canvasRef} className="hidden" />
 
+            {/* Language Toggle */}
+            <div className="absolute top-6 right-6 z-30">
+                <LanguageToggle />
+            </div>
+
             {/* Permission Error / Start Screen */}
             {!stream && !capturedImage && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 space-y-6 z-50 bg-background text-foreground">
@@ -129,17 +151,17 @@ export default function CameraPage() {
                         <CameraIcon className="w-10 h-10 text-foreground/50" />
                     </div>
                     <div className="text-center space-y-2">
-                        <h2 className="text-xl font-bold">Camera Access</h2>
+                        <h2 className="text-xl font-bold">{t.cameraAccess}</h2>
                         <p className="text-sm text-foreground/60 max-w-xs mx-auto">
-                            {permissionError || "We need access to your camera to take photos."}
+                            {permissionError || t.cameraNeedsAccess}
                         </p>
                     </div>
                     <Button onClick={startCamera} variant="primary" size="lg">
-                        Enable Camera
+                        {t.enableCamera}
                     </Button>
                     {!window.isSecureContext && (
                         <p className="text-xs text-red-500 max-w-xs text-center">
-                            Warning: Not on HTTPS. Camera might be blocked by browser.
+                            {t.notHttpsWarning}
                         </p>
                     )}
                 </div>

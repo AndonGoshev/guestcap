@@ -1,0 +1,7 @@
+# Place custom font files here (if not using Next.js font optimization)
+# 
+# Note: For most cases, use Next.js built-in font optimization:
+# import { Inter } from 'next/font/google'
+# 
+# Only use this folder if you have custom/self-hosted fonts
+

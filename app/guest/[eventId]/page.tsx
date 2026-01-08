@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useLanguage } from "@/context/LanguageContext";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useRouter, useParams } from "next/navigation";
 import { Camera } from "lucide-react";
 
@@ -41,7 +42,7 @@ export default function GuestEntryPage() {
                 .single();
 
             if (error) {
-                alert(`Error joining event: ${JSON.stringify(error)}`);
+                alert(`${t.errorJoining}: ${JSON.stringify(error)}`);
                 console.error(error);
                 setIsSubmitting(false);
                 return;
@@ -52,13 +53,16 @@ export default function GuestEntryPage() {
             router.push(`/guest/${eventId}/camera`);
 
         } catch (err: any) {
-            alert(`Unexpected error: ${err.message}`);
+            alert(`${t.unexpectedError}: ${err.message}`);
             setIsSubmitting(false);
         }
     };
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 space-y-8">
+            <div className="absolute top-6 right-6 z-10">
+                <LanguageToggle />
+            </div>
             <div className="w-full max-w-md space-y-8 text-center animate-in fade-in zoom-in duration-500">
                 <div className="flex justify-center">
                     <div className="w-20 h-20 bg-accent-gradient rounded-full flex items-center justify-center shadow-lg">
@@ -88,7 +92,7 @@ export default function GuestEntryPage() {
                         variant="primary"
                         disabled={!name.trim() || isSubmitting}
                     >
-                        {isSubmitting ? "Joining..." : t.continue}
+                        {isSubmitting ? t.joining : t.continue}
                     </Button>
                 </form>
             </div>

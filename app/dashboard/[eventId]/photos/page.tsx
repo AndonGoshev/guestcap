@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { usePhotos, Photo } from "@/hooks/usePhotos";
 import { useLanguage } from "@/context/LanguageContext";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { ArrowLeft, User, Download, Folder } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -19,7 +20,7 @@ export default function AllPhotosPage() {
 
     photos.forEach(p => {
         const guestId = p.guest_id;
-        const guestName = p.guests?.name || "Anonymous";
+        const guestName = p.guests?.name || t.anonymous;
 
         if (!guestGroups[guestId]) {
             guestGroups[guestId] = { name: guestName, photos: [] };
@@ -49,10 +50,13 @@ export default function AllPhotosPage() {
                         </Link>
                         <h1 className="text-2xl font-bold">{t.allPhotos}</h1>
                     </div>
-                    <Button variant="secondary" size="sm">
-                        <Download className="w-4 h-4 mr-2" />
-                        {t.downloadAll}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <LanguageToggle />
+                        <Button variant="secondary" size="sm">
+                            <Download className="w-4 h-4 mr-2" />
+                            {t.downloadAll}
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Guests Grid */}
@@ -60,7 +64,7 @@ export default function AllPhotosPage() {
                     {guests.length === 0 ? (
                         <div className="col-span-full py-12 text-center text-foreground/40">
                             <Folder className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                            No guests have uploaded photos yet.
+                            {t.noGuestsUploaded}
                         </div>
                     ) : (
                         guests.map(guest => (
@@ -79,7 +83,7 @@ export default function AllPhotosPage() {
                                     </div>
                                     <div className="text-center">
                                         <h3 className="font-semibold truncate">{guest.name}</h3>
-                                        <p className="text-xs text-foreground/50">{guest.count} photos</p>
+                                        <p className="text-xs text-foreground/50">{guest.count} {t.photos}</p>
                                     </div>
                                 </Card>
                             </Link>

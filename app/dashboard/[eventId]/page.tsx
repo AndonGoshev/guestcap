@@ -7,6 +7,7 @@ import { useEvents } from "@/hooks/useEvents";
 import { usePhotos } from "@/hooks/usePhotos";
 import { useChallenges } from "@/hooks/useChallenges";
 import { useLanguage } from "@/context/LanguageContext";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { ArrowLeft, Share2, Folder, Image as ImageIcon, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -28,7 +29,7 @@ export default function EventDashboard() {
         setBaseUrl(window.location.origin);
     }
 
-    if (!event) return <div className="p-12">Event not found</div>;
+    if (!event) return <div className="p-12">{t.eventNotFound}</div>;
 
     const eventUrl = `${baseUrl}/guest/${eventId}`;
 
@@ -45,6 +46,7 @@ export default function EventDashboard() {
                         </Button>
                     </Link>
                     <div className="flex items-center space-x-2">
+                        <LanguageToggle />
                         <span className="text-sm text-foreground/50">ID: {eventId.slice(0, 8)}</span>
                     </div>
                 </div>
@@ -55,7 +57,7 @@ export default function EventDashboard() {
                     <div className="flex-1 space-y-8 w-full">
                         <div>
                             <h1 className="text-4xl font-bold text-foreground mb-2">{event.name}</h1>
-                            <p className="text-foreground/60">Created on {new Date(event.created_at).toLocaleDateString()}</p>
+                            <p className="text-foreground/60">{t.createdOn} {new Date(event.created_at).toLocaleDateString()}</p>
                         </div>
 
                         {/* Folders */}
@@ -67,7 +69,7 @@ export default function EventDashboard() {
                                     </div>
                                     <div>
                                         <h3 className="font-medium text-lg">{t.allPhotos}</h3>
-                                        <p className="text-sm text-foreground/40">{photos.length} photos</p>
+                                        <p className="text-sm text-foreground/40">{photos.length} {t.photos}</p>
                                     </div>
                                 </Card>
                             </Link>
@@ -79,7 +81,7 @@ export default function EventDashboard() {
                                     </div>
                                     <div>
                                         <h3 className="font-medium text-lg">{t.challenges}</h3>
-                                        <p className="text-sm text-foreground/40">{challenges.length} active</p>
+                                        <p className="text-sm text-foreground/40">{challenges.length} {t.active}</p>
                                     </div>
                                 </Card>
                             </Link>
@@ -89,8 +91,8 @@ export default function EventDashboard() {
                     {/* Right: QR Card */}
                     <Card className="w-full md:w-80 flex flex-col items-center text-center space-y-6">
                         <div className="space-y-2">
-                            <h3 className="font-bold">Guest Access</h3>
-                            <p className="text-sm text-foreground/60">Scan to join event</p>
+                            <h3 className="font-bold">{t.guestAccess}</h3>
+                            <p className="text-sm text-foreground/60">{t.scanToJoin}</p>
 
                             <div className="pt-2">
                                 {/* Only allow editing URL in DEBUG mode (for tunneling) */}
@@ -133,7 +135,7 @@ export default function EventDashboard() {
 
                         <div className="w-full space-y-2">
                             <Button fullWidth variant="primary" onClick={() => window.print()}>
-                                Print QR Cards
+                                {t.printQRCards}
                             </Button>
                             <p className="text-xs text-foreground/40">Use <code className="bg-black/5 px-1 rounded">npm run dev -- -H 0.0.0.0</code> to access locally</p>
                         </div>

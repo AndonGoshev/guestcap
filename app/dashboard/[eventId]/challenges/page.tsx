@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { useChallenges } from "@/hooks/useChallenges";
 import { usePhotos } from "@/hooks/usePhotos";
 import { useLanguage } from "@/context/LanguageContext";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { ArrowLeft, Plus, Sparkles, User } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -40,10 +41,13 @@ export default function ChallengesPage() {
                         </Link>
                         <h1 className="text-2xl font-bold">{t.challenges}</h1>
                     </div>
-                    <Button onClick={() => setIsCreating(true)} size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        {t.createChallenge}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <LanguageToggle />
+                        <Button onClick={() => setIsCreating(true)} size="sm">
+                            <Plus className="w-4 h-4 mr-2" />
+                            {t.createChallenge}
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Create Input */}
@@ -57,7 +61,7 @@ export default function ChallengesPage() {
                                 autoFocus
                             />
                             <div className="flex gap-2 pb-2">
-                                <Button type="button" variant="ghost" onClick={() => setIsCreating(false)}>Cancel</Button>
+                                <Button type="button" variant="ghost" onClick={() => setIsCreating(false)}>{t.cancel}</Button>
                                 <Button type="submit">{t.create}</Button>
                             </div>
                         </form>
@@ -69,7 +73,7 @@ export default function ChallengesPage() {
                     {challenges.length === 0 ? (
                         <div className="col-span-full py-12 text-center text-foreground/40">
                             <Sparkles className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                            <p>No challenges yet. Create one to get started!</p>
+                            <p>{t.noChallengesYet}</p>
                         </div>
                     ) : (
                         challenges.map(challenge => {
@@ -92,7 +96,7 @@ export default function ChallengesPage() {
                                         </div>
                                         <div className="text-center">
                                             <h3 className="font-semibold truncate px-1" title={challenge.title}>{challenge.title}</h3>
-                                            <p className="text-xs text-foreground/50">{challengePhotos.length} photos</p>
+                                            <p className="text-xs text-foreground/50">{challengePhotos.length} {t.photos}</p>
                                         </div>
                                     </Card>
                                 </Link>

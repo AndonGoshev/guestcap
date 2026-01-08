@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 };
 
 import { LanguageProvider } from "@/context/LanguageContext";
+import { LanguageSetter } from "@/components/LanguageSetter";
 
 export default function RootLayout({
   children,
@@ -20,11 +21,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="bg">
       <body
         className={`${outfit.variable} antialiased`}
       >
         <LanguageProvider>
+          <LanguageSetter />
           {children}
         </LanguageProvider>
       </body>

@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { useEvents } from "@/hooks/useEvents";
 import { useLanguage } from "@/context/LanguageContext";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { LayoutDashboard, Plus, ArrowRight, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -45,9 +46,12 @@ export default function Dashboard() {
                         </div>
                         <h1 className="text-3xl font-bold text-foreground">{t.dashboard}</h1>
                     </div>
-                    <Link href="/">
-                        <Button variant="ghost" size="sm">{t.back}</Button>
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        <LanguageToggle />
+                        <Link href="/">
+                            <Button variant="ghost" size="sm">{t.back}</Button>
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Create Event Section */}
@@ -63,7 +67,7 @@ export default function Dashboard() {
                             />
                             <div className="flex space-x-3">
                                 <Button type="button" variant="ghost" fullWidth onClick={() => setIsCreating(false)}>
-                                    Cancel
+                                    {t.cancel}
                                 </Button>
                                 <Button type="submit" fullWidth disabled={!newEventName.trim()}>
                                     {t.create}
@@ -110,7 +114,7 @@ export default function Dashboard() {
                                         <div className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white" />
                                         <div className="w-6 h-6 rounded-full bg-gray-300 border-2 border-white" />
                                     </div>
-                                    <span>0 guests</span>
+                                    <span>0 {t.guests}</span>
                                 </div>
                             </Card>
                         </Link>

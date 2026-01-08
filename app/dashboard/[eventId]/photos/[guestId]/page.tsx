@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { usePhotos } from "@/hooks/usePhotos";
 import { useLanguage } from "@/context/LanguageContext";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { ArrowLeft, Download, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -19,7 +20,7 @@ export default function GuestPhotosPage() {
     const guestPhotos = photos.filter(p => p.guest_id === guestIdUUID);
 
     // Find guest name from the first photo that has it (joined data)
-    const guestName = guestPhotos[0]?.guests?.name || "Anonymous";
+    const guestName = guestPhotos[0]?.guests?.name || t.anonymous;
 
     return (
         <div className="min-h-screen bg-background p-6 md:p-12">
@@ -34,13 +35,16 @@ export default function GuestPhotosPage() {
                         </Link>
                         <div>
                             <h1 className="text-2xl font-bold">{guestName}</h1>
-                            <p className="text-sm text-foreground/50">{guestPhotos.length} photos</p>
+                            <p className="text-sm text-foreground/50">{guestPhotos.length} {t.photos}</p>
                         </div>
                     </div>
-                    <Button variant="secondary" size="sm">
-                        <Download className="w-4 h-4 mr-2" />
-                        Download
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <LanguageToggle />
+                        <Button variant="secondary" size="sm">
+                            <Download className="w-4 h-4 mr-2" />
+                            {t.download}
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Photos Grid */}
@@ -54,7 +58,7 @@ export default function GuestPhotosPage() {
                                 <div className="absolute top-2 left-2">
                                     <div className="bg-accent text-xs font-bold px-2 py-1 rounded-full flex items-center shadow-sm">
                                         <Sparkles className="w-3 h-3 mr-1" />
-                                        {photo.challenges?.title || "Challenge"}
+                                        {photo.challenges?.title || t.challenge}
                                     </div>
                                 </div>
                             )}
