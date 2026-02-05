@@ -35,8 +35,8 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-background p-6 md:p-12">
-            <div className="max-w-4xl mx-auto space-y-8">
+        <div className="min-h-screen bg-background p-6 md:p-12 pt-24 md:pt-32">
+            <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -47,7 +47,6 @@ export default function Dashboard() {
                         <h1 className="text-3xl font-bold text-foreground">{t.dashboard}</h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        <LanguageToggle />
                         <Link href="/">
                             <Button variant="ghost" size="sm">{t.back}</Button>
                         </Link>

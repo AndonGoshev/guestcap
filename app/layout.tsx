@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 
 import { LanguageProvider } from "@/context/LanguageContext";
 import { LanguageSetter } from "@/components/LanguageSetter";
+import { Header } from "@/components/layout/Header";
 
 export default function RootLayout({
   children,
@@ -33,6 +34,7 @@ export default function RootLayout({
       >
         <LanguageProvider>
           <LanguageSetter />
+          <Header />
           {children}
         </LanguageProvider>
       </body>

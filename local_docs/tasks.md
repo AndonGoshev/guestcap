@@ -1,0 +1,1 @@
+for challanges we need to have premade camera presets like blavk and white, or some instagram-like filters. Also when the guest opens a challange it will be open the camera so they can take the photo now. 

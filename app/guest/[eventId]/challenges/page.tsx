@@ -91,7 +91,7 @@ export default function GuestChallengesPage() {
                                     hover:border-accent hover:shadow-lg
                                     ${hasSubmitted ? 'bg-green-50 border-green-200' : ''}
                                 `}
-                                onClick={() => router.push(`/guest/${eventId}/upload?challenge=${challenge.id}`)}
+                                onClick={() => router.push(`/guest/${eventId}/camera?challengeId=${challenge.id}`)}
                             >
                                 <div className="flex items-center gap-4">
                                     {/* Challenge Icon/Status */}
@@ -102,7 +102,12 @@ export default function GuestChallengesPage() {
                                         {hasSubmitted ? (
                                             <Check className="w-6 h-6 text-white" />
                                         ) : (
-                                            <Camera className="w-6 h-6 text-accent-end" />
+                                            <div className="flex flex-col items-center">
+                                                <Camera className="w-5 h-5 text-accent-end" />
+                                                {challenge.filter && (
+                                                    <span className="text-[10px] text-accent-end mt-0.5">FILTER</span>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
 

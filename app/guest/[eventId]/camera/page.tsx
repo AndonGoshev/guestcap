@@ -7,12 +7,15 @@ import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useChallenges } from "@/hooks/useChallenges";
 import { usePhotos } from "@/hooks/usePhotos";
 import { ArrowLeft, Camera as CameraIcon, Check, RefreshCw, Send, Sparkles, X } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 
 export default function CameraPage() {
     const { eventId } = useParams() as { eventId: string };
     const { t } = useLanguage();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const initialChallengeId = searchParams.get('challengeId');
+
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -22,11 +25,22 @@ export default function CameraPage() {
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const [isSending, setIsSending] = useState(false);
-    const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(null);
+    const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(initialChallengeId);
     const [showChallenges, setShowChallenges] = useState(false);
     const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
 
     const [permissionError, setPermissionError] = useState<string | null>(null);
+
+    // Initialize selected challenge from URL
+    useEffect(() => {
+        if (initialChallengeId && challenges.length > 0) {
+            setSelectedChallengeId(initialChallengeId);
+        }
+    }, [initialChallengeId, challenges]);
+
+    // Get active challenge and filter
+    const activeChallenge = challenges.find(c => c.id === selectedChallengeId);
+    const activeFilter = activeChallenge?.filter || "none";
 
     // Initialize Camera
     const startCamera = useCallback(async () => {
@@ -98,9 +112,19 @@ export default function CameraPage() {
 
         const ctx = canvas.getContext('2d');
         if (ctx) {
+            // Apply filter to context if exists
+            if (activeFilter && activeFilter !== "none") {
+                ctx.filter = activeFilter;
+            } else {
+                ctx.filter = "none";
+            }
+
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
             setCapturedImage(dataUrl);
+
+            // Reset filter
+            ctx.filter = "none";
         }
     };
 
@@ -215,6 +239,7 @@ export default function CameraPage() {
                         playsInline
                         muted
                         className="w-full h-full object-cover"
+                        style={{ filter: activeFilter }}
                         onLoadedMetadata={() => videoRef.current?.play()}
                     />
 

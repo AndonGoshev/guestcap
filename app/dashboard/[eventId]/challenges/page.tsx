@@ -20,25 +20,45 @@ export default function ChallengesPage() {
     const [newChallengeTitle, setNewChallengeTitle] = useState("");
     const [newChallengeFilter, setNewChallengeFilter] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
-    const [showPresets, setShowPresets] = useState(false);
+    const [showPresetsDropdown, setShowPresetsDropdown] = useState(false);
 
-    const handleCreate = (e: React.FormEvent) => {
-        e.preventDefault();
+    // Enrich presets with UI details and translations
+    const PRESET_OPTIONS = [
+        {
+            ...CHALLENGE_PRESETS[0], // B&W
+            displayTitle: t.blackAndWhitePhoto || CHALLENGE_PRESETS[0].title,
+            image: "/images/camera-presets/black-and-white.jpg",
+            description: t.blackAndWhiteHelp
+        },
+        {
+            ...CHALLENGE_PRESETS[1], // 90s
+            displayTitle: t.ninetiesFilterTitle,
+            image: "/images/camera-presets/90s.jpg",
+            description: t.ninetiesFilterHelp
+        }
+    ];
+
+    const handleCreate = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         if (!newChallengeTitle.trim()) return;
         addChallenge(newChallengeTitle, newChallengeFilter);
         setNewChallengeTitle("");
         setNewChallengeFilter(null);
         setIsCreating(false);
+        setShowPresetsDropdown(false);
     };
 
-    const handlePresetSelect = (preset: typeof CHALLENGE_PRESETS[number]) => {
+    const handlePresetSelect = (preset: typeof PRESET_OPTIONS[number]) => {
         addChallenge(preset.title, preset.filter);
-        setShowPresets(false);
+        setNewChallengeTitle("");
+        setNewChallengeFilter(null);
+        setIsCreating(false);
+        setShowPresetsDropdown(false);
     };
 
     return (
-        <div className="min-h-screen bg-background p-6 md:p-12">
-            <div className="max-w-4xl mx-auto space-y-8">
+        <div className="min-h-screen bg-background p-6 md:p-12 pt-24 md:pt-32">
+            <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -50,11 +70,6 @@ export default function ChallengesPage() {
                         <h1 className="text-2xl font-bold">{t.challenges}</h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        <LanguageToggle />
-                        <Button onClick={() => setShowPresets(true)} variant="ghost" size="sm">
-                            <Sparkles className="w-4 h-4 mr-2" />
-                            {t.presets || "Presets"}
-                        </Button>
                         <Button onClick={() => setIsCreating(true)} size="sm">
                             <Plus className="w-4 h-4 mr-2" />
                             {t.createChallenge}
@@ -62,53 +77,99 @@ export default function ChallengesPage() {
                     </div>
                 </div>
 
-                {/* Presets Modal */}
-                {showPresets && (
+                {/* Create Modal */}
+                {isCreating && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <Card className="max-w-md w-full p-6 space-y-4 animate-in zoom-in-95">
+                        <Card className="max-w-lg w-full p-6 space-y-6 animate-in zoom-in-95 relative overflow-visible">
                             <div className="flex justify-between items-center">
-                                <h2 className="text-xl font-bold">{t.choosePreset || "Choose a Preset"}</h2>
-                                <Button variant="ghost" size="icon" onClick={() => setShowPresets(false)}>
+                                <h2 className="text-xl font-bold">{t.createChallenge}</h2>
+                                <Button variant="ghost" size="icon" onClick={() => setIsCreating(false)}>
                                     <X className="w-5 h-5" />
                                 </Button>
                             </div>
-                            <div className="space-y-2">
-                                {CHALLENGE_PRESETS.map((preset, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => handlePresetSelect(preset)}
-                                        className="w-full p-4 rounded-xl text-left font-medium transition-colors border border-border bg-surface-end hover:bg-accent/20 hover:border-accent flex items-center gap-3"
-                                    >
-                                        <span className="text-2xl">{preset.icon}</span>
-                                        <div>
-                                            <div className="font-semibold">{preset.title}</div>
-                                            {preset.filter && (
-                                                <div className="text-xs text-foreground/50">🎬 {t.hasFilter || "Has filter"}</div>
-                                            )}
-                                        </div>
-                                    </button>
-                                ))}
+
+                            {/* Manual Input */}
+                            <form onSubmit={handleCreate} className="space-y-4">
+                                <Input
+                                    label={t.challengeTitle}
+                                    value={newChallengeTitle}
+                                    onChange={e => setNewChallengeTitle(e.target.value)}
+                                    placeholder="e.g. Kiss the Bride"
+                                    autoFocus
+                                />
+                                <div className="flex justify-end">
+                                    <Button type="submit" disabled={!newChallengeTitle.trim()}>
+                                        {t.create}
+                                    </Button>
+                                </div>
+                            </form>
+
+                            {/* Divider */}
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t border-border" />
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-surface px-2 text-foreground/50">
+                                        {t.or || "OR"}
+                                    </span>
+                                </div>
                             </div>
+
+                            {/* Templates Dropdown */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    {t.selectTemplate || "Select a Template"}
+                                </label>
+
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPresetsDropdown(!showPresetsDropdown)}
+                                        className="w-full flex items-center justify-between rounded-md border border-input bg-surface-end px-3 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        <span className="text-foreground/70">{t.choosePreset}</span>
+                                        <Sparkles className="w-4 h-4 opacity-50" />
+                                    </button>
+
+                                    {showPresetsDropdown && (
+                                        <div className="absolute z-50 top-full mt-2 w-full rounded-md border border-border bg-surface text-foreground shadow-xl animate-in fade-in-0 zoom-in-95">
+                                            <div className="p-1">
+                                                {PRESET_OPTIONS.map((preset, i) => (
+                                                    <button
+                                                        key={i}
+                                                        onClick={() => handlePresetSelect(preset)}
+                                                        className="w-full flex items-start gap-3 rounded-sm px-2 py-2 hover:bg-accent/20 hover:text-accent-foreground outline-none transition-colors text-left group"
+                                                    >
+                                                        {/* Image */}
+                                                        <div className="w-16 h-16 rounded-md overflow-hidden bg-gray-100 flex-shrink-0 border border-border group-hover:border-accent">
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img
+                                                                src={preset.image}
+                                                                alt={preset.title}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </div>
+
+                                                        {/* Text */}
+                                                        <div className="flex-1 py-1">
+                                                            <div className="font-semibold flex items-center">
+                                                                {preset.displayTitle}
+                                                            </div>
+                                                            <p className="text-xs text-foreground/60 mt-1 leading-snug">
+                                                                {preset.description}
+                                                            </p>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                         </Card>
                     </div>
-                )}
-
-                {/* Create Input */}
-                {isCreating && (
-                    <Card className="animate-in slide-in-from-top-2">
-                        <form onSubmit={handleCreate} className="flex gap-4 items-end">
-                            <Input
-                                label={t.challengeTitle}
-                                value={newChallengeTitle}
-                                onChange={e => setNewChallengeTitle(e.target.value)}
-                                autoFocus
-                            />
-                            <div className="flex gap-2 pb-2">
-                                <Button type="button" variant="ghost" onClick={() => setIsCreating(false)}>{t.cancel}</Button>
-                                <Button type="submit">{t.create}</Button>
-                            </div>
-                        </form>
-                    </Card>
                 )}
 
                 {/* Challenges Grid */}
@@ -143,8 +204,8 @@ export default function ChallengesPage() {
                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                                             {/* Filter Badge */}
                                             {challenge.filter && (
-                                                <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-                                                    🎬 B&W
+                                                <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white text-[10px] uppercase font-bold px-2 py-1 rounded-full border border-white/20">
+                                                    {challenge.filter.includes('grayscale') ? '🎬 B&W' : '📸 90s'}
                                                 </div>
                                             )}
                                         </div>

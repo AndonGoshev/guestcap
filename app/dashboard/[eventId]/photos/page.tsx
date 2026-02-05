@@ -38,8 +38,8 @@ export default function AllPhotosPage() {
     // Sorting could be added here
 
     return (
-        <div className="min-h-screen bg-background p-6 md:p-12">
-            <div className="max-w-4xl mx-auto space-y-8">
+        <div className="min-h-screen bg-background p-6 md:p-12 pt-24 md:pt-32">
+            <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -51,7 +51,6 @@ export default function AllPhotosPage() {
                         <h1 className="text-2xl font-bold">{t.allPhotos}</h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        <LanguageToggle />
                         <Button variant="secondary" size="sm">
                             <Download className="w-4 h-4 mr-2" />
                             {t.downloadAll}

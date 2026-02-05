@@ -15,9 +15,17 @@ export const translations = {
         download: "Download",
         downloadAll: "Download All",
 
+        // Header
+        features: "Features",
+        pricing: "Pricing",
+        home: "Home",
+
         // Home Page
+        heroTitle: "Save every moment",
         iAmHost: "I am a Host",
         subtitle: "One place for every photo from your event.",
+        featuresTitle: "Every moment deserves to be preserved",
+        featuresSubtitle: "Guests share in seconds, and you receive every photo organized and kept in full quality — without any loss.",
 
         // Host Dashboard
         createEvent: "Create Event",
@@ -70,6 +78,20 @@ export const translations = {
         presets: "Presets",
         choosePreset: "Choose a Preset",
         hasFilter: "Has filter",
+        or: "OR",
+        selectTemplate: "Select a Template",
+        blackAndWhiteHelp: "Classic black & white filter for timeless photos",
+        blackAndWhitePhoto: "Black & White Photo",
+        ninetiesFilterTitle: "90s",
+        ninetiesFilterHelp: "Subtle saturation with a soft film look for that classic 90s nostalgia",
+
+        // Home Features
+        featureHighQualityTitle: "Full Quality, Zero Hassle",
+        featureHighQualityDesc: "Traditionally, guests send photos via WhatsApp or Viber, which crushes quality. With GuestCap, they share just as easily—but in full, original resolution.",
+        featureInstantAccessTitle: "Instant Access, No Apps",
+        featureInstantAccessDesc: "Guests join the event instantly via QR code—no downloads, no sign-ups, no fuss.",
+        featureChallengesTitle: "Challenge Your Guests to Join In",
+        featureChallengesDesc: "Guests can take part in fun photo challenges — from ready-made filters like “Black & White” or “90s Retro” to custom ideas created by the host, such as “Funniest photo with the bride.”",
     },
     bg: {
         // Shared
@@ -85,9 +107,17 @@ export const translations = {
         download: "Изтегли",
         downloadAll: "Изтегли всички",
 
+        // Header
+        features: "Функционалности",
+        pricing: "Цени",
+        home: "Начало",
+
         // Home Page
+        heroTitle: "Запази всеки момент",
         iAmHost: "Аз съм домакин",
         subtitle: "Едно място за всяка снимка от вашето събитие.",
+        featuresTitle: "Всеки момент заслужава да бъде запазен",
+        featuresSubtitle: "Гостите споделят за секунди, а вие получавате всяка снимка подредена и запазена без загуба на качество.",
 
         // Host Dashboard
         createEvent: "Създай Събитие",
@@ -140,5 +170,19 @@ export const translations = {
         presets: "Шаблони",
         choosePreset: "Избери шаблон",
         hasFilter: "С филтър",
+        or: "ИЛИ",
+        selectTemplate: "Избери шаблон",
+        blackAndWhiteHelp: "Класически черно-бял филтър за вечни снимки",
+        blackAndWhitePhoto: "Черно-бяла снимка",
+        ninetiesFilterTitle: "90те",
+        ninetiesFilterHelp: "Деликатна сатурация и меко филмово излъчване за класическа 90-тарска носталгия",
+
+        // Home Features
+        featureHighQualityTitle: "Без компромиси в качеството",
+        featureHighQualityDesc: "Традиционно гостите изпращат снимки чрез WhatsApp или Viber, което компресира качеството. С GuestCap те споделят също толкова лесно — но в пълна, оригинална резолюция.",
+        featureInstantAccessTitle: "Мигновен достъп, без приложения",
+        featureInstantAccessDesc: "Гостите се включват веднага чрез QR код — без изтегляне на приложения, без регистрации, без усилия.",
+        featureChallengesTitle: "Предизвикай гостите да се включат",
+        featureChallengesDesc: "Гостите могат да участват в забавни предизвикателства — от готови филтри като „Черно-бял“ или „90s ретро“ до персонализирани идеи на домакина като „Най-смешна снимка с булката“.",
     }
 };

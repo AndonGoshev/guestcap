@@ -86,10 +86,11 @@ export async function GET(
 
         // Create folders for each guest and add their photos
         for (const [guestId, { guestName, photos: guestPhotos }] of photosByGuest) {
-            // Create safe folder name from guest name
+            // Create safe folder name - allow international characters, only strip dangerous ones
             const safeFolderName = guestName
-                .replace(/[^a-z0-9\s]/gi, "")
-                .replace(/\s+/g, "_")
+                .replace(/[<>:"/\\|?*]/g, "") // Remove reserved filesystem characters
+                .replace(/\s+/g, "_")          // Replace spaces with underscores
+                .trim()
                 .substring(0, 50) || "Guest";
 
             // Create folder in ZIP
@@ -158,9 +159,11 @@ export async function GET(
 
         // Create safe filename
         const safeEventName = event.name
-            .replace(/[^a-z0-9]/gi, "-")
-            .replace(/-+/g, "-")
+            .replace(/[<>:"/\\|?*]/g, "") // Remove reserved characters
+            .replace(/\s+/g, "-")         // Spaces to dashes
+            .trim()
             .substring(0, 50);
+
         const filename = `${safeEventName}-photos.zip`;
 
         return new NextResponse(zipBuffer, {

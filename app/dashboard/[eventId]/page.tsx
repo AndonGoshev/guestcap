@@ -138,8 +138,8 @@ export default function EventDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-background p-6 md:p-12">
-            <div className="max-w-4xl mx-auto space-y-8">
+        <div className="min-h-screen bg-background p-6 md:p-12 pt-24 md:pt-32">
+            <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -150,7 +150,6 @@ export default function EventDashboard() {
                         </Button>
                     </Link>
                     <div className="flex items-center space-x-2">
-                        <LanguageToggle />
                         <span className="text-sm text-foreground/50">ID: {eventId.slice(0, 8)}</span>
                     </div>
                 </div>

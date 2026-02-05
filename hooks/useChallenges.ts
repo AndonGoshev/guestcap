@@ -14,6 +14,7 @@ export interface Challenge {
 // Premade challenge templates
 export const CHALLENGE_PRESETS = [
     { title: "Black & White Photo", filter: "grayscale(1)", icon: "🎞️" },
+    { title: "90s", filter: "saturate(0.6) brightness(1.05) contrast(1.1)", icon: "📸" },
     { title: "Best Smile", filter: null, icon: "😊" },
     { title: "Group Photo", filter: null, icon: "👥" },
     { title: "Table Decoration", filter: null, icon: "🌸" },
