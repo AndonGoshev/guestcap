@@ -9,11 +9,14 @@ import { Camera } from "lucide-react";
 
 interface NameInputProps {
     eventName: string;
+    eventImageUrl?: string | null;
     onSubmit: (name: string) => Promise<void>;
     isLoading?: boolean;
 }
 
-export function NameInput({ eventName, onSubmit, isLoading = false }: NameInputProps) {
+import Image from "next/image";
+
+export function NameInput({ eventName, eventImageUrl, onSubmit, isLoading = false }: NameInputProps) {
     const { t } = useLanguage();
     const [name, setName] = useState("");
 
@@ -32,8 +35,13 @@ export function NameInput({ eventName, onSubmit, isLoading = false }: NameInputP
             <div className="w-full max-w-md space-y-8 text-center animate-in fade-in zoom-in duration-500">
                 {/* Icon */}
                 <div className="flex justify-center">
-                    <div className="w-20 h-20 bg-accent-gradient rounded-full flex items-center justify-center shadow-lg">
-                        <Camera className="w-10 h-10 text-foreground" />
+                    <div className="w-24 h-24 relative rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white/20">
+                        <Image
+                            src={eventImageUrl || "/images/events/default-event-image.jpg"}
+                            alt={eventName}
+                            fill
+                            className="object-cover"
+                        />
                     </div>
                 </div>
 

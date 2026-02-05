@@ -13,6 +13,8 @@ export interface Event {
     storage_used_mb?: number;
     upload_deadline?: string | null;
     tier_plan?: string;
+    event_image_url?: string | null;
+    expected_guests?: number | null;
 }
 
 export interface EventStats {

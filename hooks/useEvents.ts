@@ -11,6 +11,8 @@ export interface Event {
     is_active?: boolean;
     storage_used_mb?: number;
     storage_limit_mb?: number;
+    event_image_url?: string | null;
+    expected_guests?: number | null;
 }
 
 export function useEvents() {
@@ -72,13 +74,18 @@ export function useEvents() {
         };
     }, [hostId]);
 
-    const createEvent = async (name: string) => {
+    const createEvent = async (name: string, image_url?: string | null, guest_count?: number | null) => {
         if (!hostId) return null;
 
         const { data, error } = await supabase
             .from('events')
             .insert([
-                { name, host_id: hostId }
+                {
+                    name,
+                    host_id: hostId,
+                    event_image_url: image_url || null,
+                    expected_guests: guest_count || null
+                }
             ])
             .select()
             .single();

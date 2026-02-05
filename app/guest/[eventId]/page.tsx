@@ -54,6 +54,7 @@ export default function GuestEntryPage() {
         return (
             <NameInput
                 eventName={event.name}
+                eventImageUrl={event.event_image_url}
                 onSubmit={async (name) => {
                     await createGuest(name);
                 }}
@@ -68,6 +69,7 @@ export default function GuestEntryPage() {
             guestName={identity.guestName}
             uploadCount={identity.uploadCount || 0}
             eventName={event.name}
+            eventImageUrl={event.event_image_url}
             eventStats={{
                 totalPhotos: stats.totalPhotos,
                 totalGuests: stats.totalGuests,

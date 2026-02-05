@@ -45,12 +45,16 @@ export function useChallenges(eventId: string) {
 
         // Setup realtime subscription
         const channel = supabase
-            .channel('challenges_channel')
+            .channel(`challenges_${eventId}`)
             .on(
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'challenges', filter: `event_id=eq.${eventId}` },
                 (payload) => {
-                    setChallenges(prev => [...prev, payload.new as Challenge]);
+                    const newChallenge = payload.new as Challenge;
+                    setChallenges(prev => {
+                        if (prev.find(c => c.id === newChallenge.id)) return prev;
+                        return [...prev, newChallenge];
+                    });
                 }
             )
             .subscribe();
@@ -74,6 +78,12 @@ export function useChallenges(eventId: string) {
             console.error('Error adding challenge:', error);
             return null;
         }
+
+        // Manually update state for immediate feedback
+        setChallenges(prev => {
+            if (prev.find(c => c.id === data.id)) return prev;
+            return [...prev, data];
+        });
 
         return data;
     };

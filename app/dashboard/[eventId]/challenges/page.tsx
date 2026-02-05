@@ -60,7 +60,7 @@ export default function ChallengesPage() {
         <div className="min-h-screen bg-background p-6 md:p-12 pt-24 md:pt-32">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center space-x-4">
                         <Link href={`/dashboard/${eventId}`}>
                             <Button variant="ghost" size="icon" className="rounded-full">
@@ -69,8 +69,8 @@ export default function ChallengesPage() {
                         </Link>
                         <h1 className="text-2xl font-bold">{t.challenges}</h1>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button onClick={() => setIsCreating(true)} size="sm">
+                    <div className="w-full md:w-auto">
+                        <Button onClick={() => setIsCreating(true)} size="sm" fullWidth className="md:w-auto h-11">
                             <Plus className="w-4 h-4 mr-2" />
                             {t.createChallenge}
                         </Button>
@@ -94,7 +94,7 @@ export default function ChallengesPage() {
                                     label={t.challengeTitle}
                                     value={newChallengeTitle}
                                     onChange={e => setNewChallengeTitle(e.target.value)}
-                                    placeholder="e.g. Kiss the Bride"
+                                    placeholder={t.challengePlaceholder || "Най-смешна снимка с булката"}
                                     autoFocus
                                 />
                                 <div className="flex justify-end">
