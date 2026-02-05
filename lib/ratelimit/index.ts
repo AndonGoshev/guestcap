@@ -35,11 +35,11 @@ export const apiRateLimiter = new Ratelimit({
 });
 
 /**
- * Rate limiter for uploads: 50 files per hour per guest
+ * Rate limiter for uploads: 300 files per hour per guest
  */
 export const uploadRateLimiter = new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(50, "1 h"),
+    limiter: Ratelimit.slidingWindow(300, "1 h"),
     analytics: true,
     prefix: "@guestcap/upload",
 });

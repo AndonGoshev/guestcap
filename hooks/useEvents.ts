@@ -8,6 +8,9 @@ export interface Event {
     name: string;
     host_id: string;
     created_at: string;
+    is_active?: boolean;
+    storage_used_mb?: number;
+    storage_limit_mb?: number;
 }
 
 export function useEvents() {
@@ -69,13 +72,39 @@ export function useEvents() {
 
     const getEvent = (id: string) => {
         return events.find(e => e.id === id);
-        // Note: In a real app we might want to fetch single event if not in list
+    };
+
+    const updateEvent = async (id: string, updates: Partial<Event>) => {
+        const { data, error } = await supabase
+            .from('events')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error updating event:', error);
+            return null;
+        }
+
+        setEvents(prev => prev.map(e => e.id === id ? { ...e, ...data } : e));
+        return data;
+    };
+
+    const toggleEventActive = async (id: string) => {
+        const event = events.find(e => e.id === id);
+        if (!event) return null;
+
+        const newStatus = event.is_active === false ? true : false;
+        return updateEvent(id, { is_active: newStatus });
     };
 
     return {
         events,
         loading,
         createEvent,
-        getEvent
+        getEvent,
+        updateEvent,
+        toggleEventActive
     };
 }

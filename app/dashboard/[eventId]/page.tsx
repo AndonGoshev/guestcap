@@ -8,21 +8,24 @@ import { usePhotos } from "@/hooks/usePhotos";
 import { useChallenges } from "@/hooks/useChallenges";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
-import { ArrowLeft, Share2, Folder, Image as ImageIcon, Sparkles } from "lucide-react";
+import { ArrowLeft, Share2, Folder, Image as ImageIcon, Sparkles, Power, Download, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 
 export default function EventDashboard() {
     const { eventId } = useParams() as { eventId: string };
-    const { getEvent } = useEvents();
+    const { getEvent, toggleEventActive } = useEvents();
     const event = getEvent(eventId);
-    const { photos } = usePhotos(eventId); // Fetch photos for count
-    const { challenges } = useChallenges(eventId); // Fetch challenges for count
+    const { photos } = usePhotos(eventId);
+    const { challenges } = useChallenges(eventId);
     const { t } = useLanguage();
 
     const [baseUrl, setBaseUrl] = useState("");
     const [isEditingUrl, setIsEditingUrl] = useState(false);
+    const [isToggling, setIsToggling] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [downloadError, setDownloadError] = useState<string | null>(null);
 
     // Set initial base url
     if (typeof window !== 'undefined' && !baseUrl) {
@@ -32,6 +35,51 @@ export default function EventDashboard() {
     if (!event) return <div className="p-12">{t.eventNotFound}</div>;
 
     const eventUrl = `${baseUrl}/guest/${eventId}`;
+    const isActive = event.is_active !== false;
+
+    const handleToggleActive = async () => {
+        setIsToggling(true);
+        await toggleEventActive(eventId);
+        setIsToggling(false);
+    };
+
+    const handleDownload = async () => {
+        if (photos.length === 0) {
+            setDownloadError("No photos to download");
+            return;
+        }
+
+        setIsDownloading(true);
+        setDownloadError(null);
+
+        try {
+            const response = await fetch(`/api/download/event/${eventId}`);
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || "Download failed");
+            }
+
+            const contentDisposition = response.headers.get("Content-Disposition");
+            const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+            const filename = filenameMatch?.[1] || `${event.name}-photos.zip`;
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (err: any) {
+            console.error("Download error:", err);
+            setDownloadError(err.message || "Failed to download");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background p-6 md:p-12">
@@ -55,9 +103,33 @@ export default function EventDashboard() {
 
                     {/* Left: Main Info */}
                     <div className="flex-1 space-y-8 w-full">
-                        <div>
-                            <h1 className="text-4xl font-bold text-foreground mb-2">{event.name}</h1>
-                            <p className="text-foreground/60">{t.createdOn} {new Date(event.created_at).toLocaleDateString()}</p>
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <h1 className="text-4xl font-bold text-foreground mb-2">{event.name}</h1>
+                                <p className="text-foreground/60">{t.createdOn} {new Date(event.created_at).toLocaleDateString()}</p>
+                            </div>
+                            {/* Event Active Toggle */}
+                            <div className="flex items-center gap-3">
+                                <span className={`text-sm ${isActive ? 'text-green-500' : 'text-foreground/40'}`}>
+                                    {isActive ? 'Active' : 'Inactive'}
+                                </span>
+                                <button
+                                    onClick={handleToggleActive}
+                                    disabled={isToggling}
+                                    className={`
+                                        relative w-12 h-6 rounded-full transition-colors duration-200
+                                        ${isActive ? 'bg-green-500' : 'bg-foreground/20'}
+                                        ${isToggling ? 'opacity-50' : ''}
+                                    `}
+                                >
+                                    <span
+                                        className={`
+                                            absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200
+                                            ${isActive ? 'translate-x-7' : 'translate-x-1'}
+                                        `}
+                                    />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Folders */}
@@ -86,6 +158,31 @@ export default function EventDashboard() {
                                 </Card>
                             </Link>
                         </div>
+
+                        {/* Download Button */}
+                        <div className="pt-4">
+                            <Button
+                                onClick={handleDownload}
+                                disabled={isDownloading || photos.length === 0}
+                                variant="outline"
+                                fullWidth
+                            >
+                                {isDownloading ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                        Preparing download...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="w-5 h-5 mr-2" />
+                                        Download All Photos ({photos.length})
+                                    </>
+                                )}
+                            </Button>
+                            {downloadError && (
+                                <p className="text-sm text-red-500 mt-2 text-center">{downloadError}</p>
+                            )}
+                        </div>
                     </div>
 
                     {/* Right: QR Card */}
@@ -95,7 +192,6 @@ export default function EventDashboard() {
                             <p className="text-sm text-foreground/60">{t.scanToJoin}</p>
 
                             <div className="pt-2">
-                                {/* Only allow editing URL in DEBUG mode (for tunneling) */}
                                 {process.env.NEXT_PUBLIC_DEBUG === 'true' ? (
                                     isEditingUrl ? (
                                         <div className="flex gap-2">
@@ -119,7 +215,6 @@ export default function EventDashboard() {
                                         </p>
                                     )
                                 ) : (
-                                    /* Normal Mode: Just show the standard URL */
                                     <p className="text-xs text-foreground/30">
                                         {baseUrl}
                                     </p>

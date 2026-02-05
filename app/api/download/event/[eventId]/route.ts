@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import JSZip from "jszip";
+import { downloadRateLimiter, checkRateLimit, rateLimitExceededResponse } from "@/lib/ratelimit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -14,8 +15,14 @@ export async function GET(
     try {
         const { eventId } = await params;
 
+        // Check rate limit (5 downloads per hour per event)
+        const rateLimit = await checkRateLimit(downloadRateLimiter, `download:${eventId}`);
+        if (!rateLimit.success) {
+            return rateLimitExceededResponse(rateLimit.reset);
+        }
 
         // Verify event exists
+
         const { data: event, error: eventError } = await supabase
             .from("events")
             .select("id, name")

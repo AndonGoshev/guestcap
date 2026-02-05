@@ -98,14 +98,17 @@ export function MiniProfile({
                         onClick={() => router.push(`/guest/${eventId}/camera`)}
                     />
 
-                    <ActionCard
-                        icon={<Star className="w-6 h-6" />}
-                        title={t.challengesTitle}
-                        subtitle="Complete fun photo tasks"
-                        onClick={() => router.push(`/guest/${eventId}/challenges`)}
-                        highlighted
-                        badge={challengeCount > 0 ? challengeCount : undefined}
-                    />
+                    {/* Only show challenges if there are any */}
+                    {challengeCount > 0 && (
+                        <ActionCard
+                            icon={<Star className="w-6 h-6" />}
+                            title={t.challengesTitle}
+                            subtitle="Complete fun photo tasks"
+                            onClick={() => router.push(`/guest/${eventId}/challenges`)}
+                            highlighted
+                            badge={challengeCount}
+                        />
+                    )}
                 </div>
 
                 {/* Event Stats */}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { uploadRateLimiter, checkRateLimit, rateLimitExceededResponse } from "@/lib/ratelimit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -30,6 +31,13 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
+
+        // Check rate limit (300 files per hour per guest)
+        const rateLimit = await checkRateLimit(uploadRateLimiter, `upload:${guestId}`);
+        if (!rateLimit.success) {
+            return rateLimitExceededResponse(rateLimit.reset);
+        }
+
 
         // Validate guest token
         const { data: guest, error: guestError } = await supabase
