@@ -9,10 +9,10 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 // GET - Fetch event details
 export async function GET(
     request: NextRequest,
-    { params }: { params: { eventId: string } }
+    { params }: { params: Promise<{ eventId: string }> }
 ) {
     try {
-        const { eventId } = params;
+        const { eventId } = await params;
 
         const { data: event, error } = await supabase
             .from("events")
@@ -54,10 +54,10 @@ export async function GET(
 // PATCH - Update event settings
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { eventId: string } }
+    { params }: { params: Promise<{ eventId: string }> }
 ) {
     try {
-        const { eventId } = params;
+        const { eventId } = await params;
         const body = await request.json();
 
         // Only allow certain fields to be updated
@@ -105,10 +105,10 @@ export async function PATCH(
 // DELETE - Delete event
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { eventId: string } }
+    { params }: { params: Promise<{ eventId: string }> }
 ) {
     try {
-        const { eventId } = params;
+        const { eventId } = await params;
 
         // Delete all photos from storage first
         const { data: photos } = await supabase
