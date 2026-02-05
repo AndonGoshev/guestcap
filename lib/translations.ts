@@ -121,7 +121,7 @@ export const translations = {
         downloadAll: "Изтегли всички",
 
         // Header
-        features: "Функционалности",
+        features: "Възможности",
         pricing: "Цени",
         home: "Начало",
 
