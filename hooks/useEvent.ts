@@ -93,9 +93,67 @@ export function useEvent(eventId: string): UseEventReturn {
     };
 
     useEffect(() => {
-        if (eventId) {
-            fetchEvent();
-        }
+        if (!eventId) return;
+
+        fetchEvent();
+
+        // 1. Subscribe to Event updates (e.g. if host toggles active/inactive)
+        const eventChannel = supabase
+            .channel(`event_${eventId}`)
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'events', filter: `id=eq.${eventId}` },
+                (payload) => {
+                    setEvent(payload.new as Event);
+                }
+            )
+            .subscribe();
+
+        // 2. Subscribe to Photos (to update total photo count)
+        const photosChannel = supabase
+            .channel(`photos_stats_${eventId}`)
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'photos', filter: `event_id=eq.${eventId}` },
+                () => {
+                    // Re-fetch stats when photos change
+                    const fetchStats = async () => {
+                        const { count } = await supabase
+                            .from("photos")
+                            .select("*", { count: "exact", head: true })
+                            .eq("event_id", eventId);
+                        setStats(prev => ({ ...prev, totalPhotos: count || 0 }));
+                    };
+                    fetchStats();
+                }
+            )
+            .subscribe();
+
+        // 3. Subscribe to Guests (to update guest count)
+        const guestsChannel = supabase
+            .channel(`guests_stats_${eventId}`)
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'guests', filter: `event_id=eq.${eventId}` },
+                () => {
+                    // Re-fetch stats when guests change
+                    const fetchStats = async () => {
+                        const { count } = await supabase
+                            .from("guests")
+                            .select("*", { count: "exact", head: true })
+                            .eq("event_id", eventId);
+                        setStats(prev => ({ ...prev, totalGuests: count || 0 }));
+                    };
+                    fetchStats();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(eventChannel);
+            supabase.removeChannel(photosChannel);
+            supabase.removeChannel(guestsChannel);
+        };
     }, [eventId]);
 
     return {

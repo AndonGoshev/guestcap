@@ -28,7 +28,7 @@ export function useEvents() {
         setHostId(storedHostId);
     }, []);
 
-    // Fetch Events
+    // Fetch Events and setup real-time
     useEffect(() => {
         if (!hostId) return;
 
@@ -48,6 +48,28 @@ export function useEvents() {
         };
 
         fetchEvents();
+
+        // Setup real-time subscription
+        const channel = supabase
+            .channel('events_changes')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'events', filter: `host_id=eq.${hostId}` },
+                (payload) => {
+                    if (payload.eventType === 'INSERT') {
+                        setEvents(prev => [payload.new as Event, ...prev]);
+                    } else if (payload.eventType === 'UPDATE') {
+                        setEvents(prev => prev.map(e => e.id === payload.new.id ? { ...e, ...payload.new } : e));
+                    } else if (payload.eventType === 'DELETE') {
+                        setEvents(prev => prev.filter(e => e.id !== payload.old.id));
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [hostId]);
 
     const createEvent = async (name: string) => {

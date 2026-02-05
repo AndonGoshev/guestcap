@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useGuestIdentity } from "@/hooks/useGuestIdentity";
 import { useChallenges } from "@/hooks/useChallenges";
 import { usePhotos } from "@/hooks/usePhotos";
 import { ArrowLeft, Camera as CameraIcon, Check, RefreshCw, Send, Sparkles, X } from "lucide-react";
@@ -19,6 +20,7 @@ export default function CameraPage() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
+    const { identity } = useGuestIdentity(eventId);
     const { challenges } = useChallenges(eventId);
     const { addPhoto } = usePhotos(eventId);
 
@@ -132,24 +134,30 @@ export default function CameraPage() {
         setCapturedImage(null);
     };
 
-    const handleSend = () => {
-        if (!capturedImage) return;
+    const handleSend = async () => {
+        if (!capturedImage || !identity) return;
         setIsSending(true);
 
-        const guestName = localStorage.getItem(`gc_guest_${eventId}`) || t.anonymous;
-
-        // Simulate network delay
-        setTimeout(() => {
-            addPhoto({
+        try {
+            const success = await addPhoto({
                 event_id: eventId,
-                guest_id: guestName,
+                guest_id: identity.guestId, // Now correctly uses the UUID
                 url: capturedImage,
                 challenge_id: selectedChallengeId || undefined
             });
+
+            if (success) {
+                setCapturedImage(null);
+                alert(t.sentSuccess);
+            } else {
+                alert(t.error || "Failed to save photo. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error sending photo:", error);
+            alert(t.error || "An unexpected error occurred.");
+        } finally {
             setIsSending(false);
-            setCapturedImage(null);
-            alert(t.sentSuccess);
-        }, 1500);
+        }
     };
 
     const handleSwitchCamera = () => {
