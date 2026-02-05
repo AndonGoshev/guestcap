@@ -22,7 +22,6 @@ export async function GET(
         }
 
         // Verify event exists
-
         const { data: event, error: eventError } = await supabase
             .from("events")
             .select("id, name")
@@ -36,10 +35,20 @@ export async function GET(
             );
         }
 
-        // Fetch all photos
+        // Fetch all photos with guest information
         const { data: photos, error: photosError } = await supabase
             .from("photos")
-            .select("id, url, original_filename, created_at")
+            .select(`
+                id, 
+                url, 
+                original_filename, 
+                created_at,
+                guest_id,
+                guests (
+                    id,
+                    name
+                )
+            `)
             .eq("event_id", eventId);
 
         if (photosError) {
@@ -61,32 +70,75 @@ export async function GET(
         const zip = new JSZip();
         let successCount = 0;
 
-        // Download and add each photo to ZIP
-        for (let i = 0; i < photos.length; i++) {
-            const photo = photos[i];
+        // Group photos by guest for folder naming
+        const photosByGuest = new Map<string, { guestName: string; photos: typeof photos }>();
 
-            try {
-                // Extract storage path from URL
-                const storagePath = photo.url?.split("/event-photos/")[1];
-                if (!storagePath) continue;
+        for (const photo of photos) {
+            const guestName = (photo.guests as any)?.name || "Unknown Guest";
+            const guestId = photo.guest_id || "unknown";
+            const key = guestId;
 
-                // Download from storage
-                const { data: fileData, error: downloadError } = await supabase.storage
-                    .from("event-photos")
-                    .download(storagePath);
+            if (!photosByGuest.has(key)) {
+                photosByGuest.set(key, { guestName, photos: [] });
+            }
+            photosByGuest.get(key)!.photos.push(photo);
+        }
 
-                if (downloadError || !fileData) {
-                    console.error(`Error downloading ${storagePath}:`, downloadError);
-                    continue;
+        // Create folders for each guest and add their photos
+        for (const [guestId, { guestName, photos: guestPhotos }] of photosByGuest) {
+            // Create safe folder name from guest name
+            const safeFolderName = guestName
+                .replace(/[^a-z0-9\s]/gi, "")
+                .replace(/\s+/g, "_")
+                .substring(0, 50) || "Guest";
+
+            // Create folder in ZIP
+            const folder = zip.folder(safeFolderName);
+            if (!folder) continue;
+
+            // Track filenames to avoid duplicates
+            const usedFilenames = new Set<string>();
+
+            for (let i = 0; i < guestPhotos.length; i++) {
+                const photo = guestPhotos[i];
+
+                try {
+                    // Extract storage path from URL
+                    const storagePath = photo.url?.split("/event-photos/")[1];
+                    if (!storagePath) continue;
+
+                    // Download from storage
+                    const { data: fileData, error: downloadError } = await supabase.storage
+                        .from("event-photos")
+                        .download(storagePath);
+
+                    if (downloadError || !fileData) {
+                        console.error(`Error downloading ${storagePath}:`, downloadError);
+                        continue;
+                    }
+
+                    // Generate unique filename
+                    let filename = photo.original_filename || `photo_${i + 1}.jpg`;
+
+                    // Handle duplicate filenames
+                    if (usedFilenames.has(filename)) {
+                        const ext = filename.split('.').pop() || 'jpg';
+                        const base = filename.replace(`.${ext}`, '');
+                        let counter = 1;
+                        while (usedFilenames.has(`${base}_${counter}.${ext}`)) {
+                            counter++;
+                        }
+                        filename = `${base}_${counter}.${ext}`;
+                    }
+                    usedFilenames.add(filename);
+
+                    // Add to folder
+                    const buffer = await fileData.arrayBuffer();
+                    folder.file(filename, buffer);
+                    successCount++;
+                } catch (err) {
+                    console.error(`Error processing photo ${photo.id}:`, err);
                 }
-
-                // Add to ZIP with original filename or fallback
-                const filename = photo.original_filename || `photo_${i + 1}.jpg`;
-                const buffer = await fileData.arrayBuffer();
-                zip.file(filename, buffer);
-                successCount++;
-            } catch (err) {
-                console.error(`Error processing photo ${photo.id}:`, err);
             }
         }
 

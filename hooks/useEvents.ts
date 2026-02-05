@@ -99,12 +99,29 @@ export function useEvents() {
         return updateEvent(id, { is_active: newStatus });
     };
 
+    const deleteEvent = async (id: string) => {
+        const { error } = await supabase
+            .from('events')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting event:', error);
+            return false;
+        }
+
+        setEvents(prev => prev.filter(e => e.id !== id));
+        return true;
+    };
+
     return {
         events,
         loading,
         createEvent,
         getEvent,
         updateEvent,
-        toggleEventActive
+        toggleEventActive,
+        deleteEvent
     };
 }
+

@@ -8,14 +8,15 @@ import { usePhotos } from "@/hooks/usePhotos";
 import { useChallenges } from "@/hooks/useChallenges";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
-import { ArrowLeft, Share2, Folder, Image as ImageIcon, Sparkles, Power, Download, Loader2 } from "lucide-react";
+import { ArrowLeft, Share2, Folder, Image as ImageIcon, Sparkles, Power, Download, Loader2, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 
 export default function EventDashboard() {
     const { eventId } = useParams() as { eventId: string };
-    const { getEvent, toggleEventActive } = useEvents();
+    const router = useRouter();
+    const { getEvent, toggleEventActive, deleteEvent } = useEvents();
     const event = getEvent(eventId);
     const { photos } = usePhotos(eventId);
     const { challenges } = useChallenges(eventId);
@@ -26,6 +27,10 @@ export default function EventDashboard() {
     const [isToggling, setIsToggling] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [downloadError, setDownloadError] = useState<string | null>(null);
+    const [downloadProgress, setDownloadProgress] = useState(0);
+    const [downloadStatus, setDownloadStatus] = useState("");
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Set initial base url
     if (typeof window !== 'undefined' && !baseUrl) {
@@ -51,6 +56,8 @@ export default function EventDashboard() {
 
         setIsDownloading(true);
         setDownloadError(null);
+        setDownloadProgress(0);
+        setDownloadStatus("Starting download...");
 
         try {
             const response = await fetch(`/api/download/event/${eventId}`);
@@ -60,24 +67,73 @@ export default function EventDashboard() {
                 throw new Error(data.error || "Download failed");
             }
 
+            const contentLength = response.headers.get("Content-Length");
+            const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
+
             const contentDisposition = response.headers.get("Content-Disposition");
             const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
             const filename = filenameMatch?.[1] || `${event.name}-photos.zip`;
 
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            // If we have content length, track progress
+            if (totalBytes > 0 && response.body) {
+                const reader = response.body.getReader();
+                const chunks: Uint8Array[] = [];
+                let receivedBytes = 0;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    chunks.push(value);
+                    receivedBytes += value.length;
+
+                    const progress = Math.round((receivedBytes / totalBytes) * 100);
+                    setDownloadProgress(progress);
+                    const mbDownloaded = (receivedBytes / (1024 * 1024)).toFixed(1);
+                    const mbTotal = (totalBytes / (1024 * 1024)).toFixed(1);
+                    setDownloadStatus(`Downloading: ${mbDownloaded} MB / ${mbTotal} MB`);
+                }
+
+                const blob = new Blob(chunks as BlobPart[]);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } else {
+                // Fallback: no progress tracking
+                setDownloadStatus("Preparing ZIP file...");
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            setDownloadProgress(100);
+            setDownloadStatus("Download complete!");
         } catch (err: any) {
             console.error("Download error:", err);
             setDownloadError(err.message || "Failed to download");
         } finally {
             setIsDownloading(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        const success = await deleteEvent(eventId);
+        setIsDeleting(false);
+
+        if (success) {
+            router.push('/dashboard');
         }
     };
 
@@ -103,33 +159,33 @@ export default function EventDashboard() {
 
                     {/* Left: Main Info */}
                     <div className="flex-1 space-y-8 w-full">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <h1 className="text-4xl font-bold text-foreground mb-2">{event.name}</h1>
-                                <p className="text-foreground/60">{t.createdOn} {new Date(event.created_at).toLocaleDateString()}</p>
-                            </div>
-                            {/* Event Active Toggle */}
-                            <div className="flex items-center gap-3">
-                                <span className={`text-sm ${isActive ? 'text-green-500' : 'text-foreground/40'}`}>
-                                    {isActive ? 'Active' : 'Inactive'}
-                                </span>
-                                <button
-                                    onClick={handleToggleActive}
-                                    disabled={isToggling}
-                                    className={`
-                                        relative w-12 h-6 rounded-full transition-colors duration-200
-                                        ${isActive ? 'bg-green-500' : 'bg-foreground/20'}
-                                        ${isToggling ? 'opacity-50' : ''}
-                                    `}
-                                >
-                                    <span
+                        <div>
+                            <div className="flex items-center gap-4 mb-2">
+                                <h1 className="text-4xl font-bold text-foreground">{event.name}</h1>
+                                {/* Event Active Toggle */}
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={handleToggleActive}
+                                        disabled={isToggling}
                                         className={`
-                                            absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200
-                                            ${isActive ? 'translate-x-7' : 'translate-x-1'}
+                                            relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0
+                                            ${isActive ? 'bg-green-500' : 'bg-gray-300'}
+                                            ${isToggling ? 'opacity-50' : ''}
                                         `}
-                                    />
-                                </button>
+                                    >
+                                        <span
+                                            className={`
+                                                absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200
+                                                ${isActive ? 'translate-x-5' : 'translate-x-0'}
+                                            `}
+                                        />
+                                    </button>
+                                    <span className={`text-sm font-medium ${isActive ? 'text-green-500' : 'text-foreground/40'}`}>
+                                        {isActive ? 'Active' : 'Inactive'}
+                                    </span>
+                                </div>
                             </div>
+                            <p className="text-foreground/60">{t.createdOn} {new Date(event.created_at).toLocaleDateString()}</p>
                         </div>
 
                         {/* Folders */}
@@ -161,26 +217,89 @@ export default function EventDashboard() {
 
                         {/* Download Button */}
                         <div className="pt-4">
-                            <Button
-                                onClick={handleDownload}
-                                disabled={isDownloading || photos.length === 0}
-                                variant="outline"
-                                fullWidth
-                            >
-                                {isDownloading ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                        Preparing download...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Download className="w-5 h-5 mr-2" />
-                                        Download All Photos ({photos.length})
-                                    </>
-                                )}
-                            </Button>
+                            {isDownloading ? (
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3">
+                                        <Loader2 className="w-5 h-5 animate-spin text-accent-end flex-shrink-0" />
+                                        <span className="text-sm text-foreground/70">{downloadStatus}</span>
+                                    </div>
+                                    <div className="relative w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
+                                        <div
+                                            className="absolute left-0 top-0 h-full bg-gradient-to-r from-accent to-accent-end rounded-full transition-all duration-300"
+                                            style={{ width: `${downloadProgress}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-center text-foreground/40">
+                                        {downloadProgress}% complete
+                                    </p>
+                                </div>
+                            ) : (
+                                <Button
+                                    onClick={handleDownload}
+                                    disabled={photos.length === 0}
+                                    variant="outline"
+                                    fullWidth
+                                >
+                                    <Download className="w-5 h-5 mr-2" />
+                                    Download All Photos ({photos.length})
+                                </Button>
+                            )}
                             {downloadError && (
                                 <p className="text-sm text-red-500 mt-2 text-center">{downloadError}</p>
+                            )}
+                        </div>
+
+                        {/* Danger Zone - Delete Event */}
+                        <div className="pt-6 border-t border-border">
+                            <p className="text-sm font-medium text-red-500 mb-3 flex items-center gap-1">
+                                <Trash2 className="w-4 h-4" />
+                                Danger Zone
+                            </p>
+                            {!showDeleteConfirm ? (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    className="text-red-500 border-red-200 hover:bg-red-50"
+                                >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Delete Event
+                                </Button>
+                            ) : (
+                                <div className="p-4 bg-red-50 rounded-lg space-y-3">
+                                    <p className="text-sm text-red-700 font-medium">
+                                        Are you sure you want to delete "{event.name}"?
+                                    </p>
+                                    <p className="text-xs text-red-600">
+                                        This will permanently delete all {photos.length} photos, {challenges.length} challenges, and guest data. This cannot be undone.
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setShowDeleteConfirm(false)}
+                                            disabled={isDeleting}
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={handleDelete}
+                                            disabled={isDeleting}
+                                            className="bg-red-500 hover:bg-red-600"
+                                        >
+                                            {isDeleting ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Deleting...
+                                                </>
+                                            ) : (
+                                                'Yes, Delete Everything'
+                                            )}
+                                        </Button>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </div>
