@@ -8,7 +8,17 @@ export interface Challenge {
     event_id: string;
     title: string;
     created_at: string;
+    filter?: string | null;
 }
+
+// Premade challenge templates
+export const CHALLENGE_PRESETS = [
+    { title: "Black & White Photo", filter: "grayscale(1)", icon: "🎞️" },
+    { title: "Best Smile", filter: null, icon: "😊" },
+    { title: "Group Photo", filter: null, icon: "👥" },
+    { title: "Table Decoration", filter: null, icon: "🌸" },
+    { title: "Dance Floor Moment", filter: null, icon: "💃" },
+] as const;
 
 export function useChallenges(eventId: string) {
     const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -50,11 +60,11 @@ export function useChallenges(eventId: string) {
 
     }, [eventId]);
 
-    const addChallenge = async (title: string) => {
+    const addChallenge = async (title: string, filter?: string | null) => {
         const { data, error } = await supabase
             .from('challenges')
             .insert([
-                { event_id: eventId, title }
+                { event_id: eventId, title, filter: filter || null }
             ])
             .select()
             .single();
@@ -64,13 +74,9 @@ export function useChallenges(eventId: string) {
             return null;
         }
 
-        // We rely on subscription to update state, or we can update optimistically/manually
-        // Let's update manualy to be sure
-        // setChallenges(prev => [...prev, data]); 
-        // actually subscription handles it but double check is fine. duplicate key if id match? 
-        // let's just trigger it or return it. 
         return data;
     };
 
     return { challenges, addChallenge };
 }
+

@@ -4,28 +4,36 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { useChallenges } from "@/hooks/useChallenges";
+import { useChallenges, CHALLENGE_PRESETS } from "@/hooks/useChallenges";
 import { usePhotos } from "@/hooks/usePhotos";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
-import { ArrowLeft, Plus, Sparkles, User } from "lucide-react";
+import { ArrowLeft, Plus, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
 export default function ChallengesPage() {
     const { eventId } = useParams() as { eventId: string };
     const { challenges, addChallenge } = useChallenges(eventId);
-    const { photos } = usePhotos(eventId); // We need this to count/show photos
+    const { photos } = usePhotos(eventId);
     const { t } = useLanguage();
     const [newChallengeTitle, setNewChallengeTitle] = useState("");
+    const [newChallengeFilter, setNewChallengeFilter] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [showPresets, setShowPresets] = useState(false);
 
     const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newChallengeTitle.trim()) return;
-        addChallenge(newChallengeTitle);
+        addChallenge(newChallengeTitle, newChallengeFilter);
         setNewChallengeTitle("");
+        setNewChallengeFilter(null);
         setIsCreating(false);
+    };
+
+    const handlePresetSelect = (preset: typeof CHALLENGE_PRESETS[number]) => {
+        addChallenge(preset.title, preset.filter);
+        setShowPresets(false);
     };
 
     return (
@@ -43,12 +51,47 @@ export default function ChallengesPage() {
                     </div>
                     <div className="flex items-center gap-2">
                         <LanguageToggle />
+                        <Button onClick={() => setShowPresets(true)} variant="ghost" size="sm">
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            {t.presets || "Presets"}
+                        </Button>
                         <Button onClick={() => setIsCreating(true)} size="sm">
                             <Plus className="w-4 h-4 mr-2" />
                             {t.createChallenge}
                         </Button>
                     </div>
                 </div>
+
+                {/* Presets Modal */}
+                {showPresets && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <Card className="max-w-md w-full p-6 space-y-4 animate-in zoom-in-95">
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-xl font-bold">{t.choosePreset || "Choose a Preset"}</h2>
+                                <Button variant="ghost" size="icon" onClick={() => setShowPresets(false)}>
+                                    <X className="w-5 h-5" />
+                                </Button>
+                            </div>
+                            <div className="space-y-2">
+                                {CHALLENGE_PRESETS.map((preset, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => handlePresetSelect(preset)}
+                                        className="w-full p-4 rounded-xl text-left font-medium transition-colors border border-border bg-surface-end hover:bg-accent/20 hover:border-accent flex items-center gap-3"
+                                    >
+                                        <span className="text-2xl">{preset.icon}</span>
+                                        <div>
+                                            <div className="font-semibold">{preset.title}</div>
+                                            {preset.filter && (
+                                                <div className="text-xs text-foreground/50">🎬 {t.hasFilter || "Has filter"}</div>
+                                            )}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </Card>
+                    </div>
+                )}
 
                 {/* Create Input */}
                 {isCreating && (
@@ -86,13 +129,24 @@ export default function ChallengesPage() {
                                         <div className="aspect-square bg-surface-end rounded-xl overflow-hidden relative">
                                             {lastPhoto ? (
                                                 // eslint-disable-next-line @next/next/no-img-element
-                                                <img src={lastPhoto} alt={challenge.title} className="w-full h-full object-cover" />
+                                                <img
+                                                    src={lastPhoto}
+                                                    alt={challenge.title}
+                                                    className="w-full h-full object-cover"
+                                                    style={{ filter: challenge.filter || undefined }}
+                                                />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center bg-accent/10">
                                                     <Sparkles className="w-8 h-8 text-accent-end/50" />
                                                 </div>
                                             )}
                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                            {/* Filter Badge */}
+                                            {challenge.filter && (
+                                                <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+                                                    🎬 B&W
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="text-center">
                                             <h3 className="font-semibold truncate px-1" title={challenge.title}>{challenge.title}</h3>
@@ -108,3 +162,4 @@ export default function ChallengesPage() {
         </div>
     );
 }
+

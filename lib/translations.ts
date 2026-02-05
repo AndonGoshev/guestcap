@@ -67,6 +67,9 @@ export const translations = {
         selectChallenge: "Select Challenge",
         noChallenge: "Just a photo",
         challengesTitle: "Challenges",
+        presets: "Presets",
+        choosePreset: "Choose a Preset",
+        hasFilter: "Has filter",
     },
     bg: {
         // Shared
@@ -134,5 +137,8 @@ export const translations = {
         selectChallenge: "Избери предизвикателство",
         noChallenge: "Просто снимка",
         challengesTitle: "Предизвикателства",
+        presets: "Шаблони",
+        choosePreset: "Избери шаблон",
+        hasFilter: "С филтър",
     }
 };

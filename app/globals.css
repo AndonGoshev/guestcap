@@ -14,7 +14,15 @@
   
   --color-success: #16A34A;
 
+  /* Warm beige palette from wedding */
+  --color-beige-light: #f5e6d3;
+  --color-beige: #e8d5c4;
+  --color-beige-warm: #d4c4b0;
+  --color-brown-soft: #8b7355;
+  --color-brown-dark: #5c4a3a;
+
   --font-sans: var(--font-outfit), system-ui, sans-serif;
+  --font-serif: var(--font-cormorant), Georgia, serif;
 }
 
 /* Utilities for gradients */
@@ -26,6 +34,82 @@
   background: linear-gradient(to right, var(--color-accent), var(--color-accent-end));
 }
 
+/* Glassmorphism utility */
+@utility glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+@utility glass-dark {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animation utilities */
+@utility animate-fade-in {
+  animation: fadeIn 1s ease-out forwards;
+}
+
+@utility animate-slide-down {
+  animation: slideDown 0.8s ease-out forwards;
+}
+
+@utility animate-slide-up {
+  animation: slideUp 0.8s ease-out forwards;
+}
+
+@utility animate-scale-in {
+  animation: scaleIn 0.8s ease-out forwards;
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Base styles */
 body {
   background-color: var(--color-background);
@@ -33,3 +117,4 @@ body {
   font-family: var(--font-sans);
   min-height: 100vh;
 }
+

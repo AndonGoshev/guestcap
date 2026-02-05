@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Outfit, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin", "cyrillic"],
+  weight: ["300", "400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -23,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="bg">
       <body
-        className={`${outfit.variable} antialiased`}
+        className={`${outfit.variable} ${cormorant.variable} antialiased`}
       >
         <LanguageProvider>
           <LanguageSetter />
@@ -33,3 +39,4 @@ export default function RootLayout({
     </html>
   );
 }
+
